@@ -1,14 +1,14 @@
 package com.tsato.server
 
-import com.tsato.server.data.collections.User
-import com.tsato.server.data.registerUser
+import com.tsato.server.data.isPasswordValid
+import com.tsato.server.routes.loginRoute
+import com.tsato.server.routes.noteRoute
+import com.tsato.server.routes.registerRoute
 import io.ktor.application.*
+import io.ktor.auth.*
 import io.ktor.features.*
 import io.ktor.routing.*
 import io.ktor.gson.gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -19,18 +19,37 @@ fun Application.module(testing: Boolean = false) {
     install(DefaultHeaders)
     // logs http requests and responses
     install(CallLogging)
-    // defines url endpoints to make rest api
-    install(Routing)
     // specifies which content type the server should respond with
     install(ContentNegotiation) {
         gson {
             setPrettyPrinting()
         }
     }
+    install(Authentication) {
+        configureAuth()
+    }
+    // defines url endpoints to make rest api
+    install(Routing) {
+        registerRoute()
+        loginRoute()
+        noteRoute()
+    }
+}
 
-    CoroutineScope(Dispatchers.IO).launch {
-        registerUser(
-            User("test@test.com", "asdf")
-        )
+private fun Authentication.Configuration.configureAuth() {
+    basic {
+        realm = "iNote Server"
+
+        validate { credentials ->
+            val email = credentials.name
+            val password = credentials.password
+
+            if (isPasswordValid(email, password)) {
+                UserIdPrincipal(email)
+            }
+            else {
+                null
+            }
+        }
     }
 }
