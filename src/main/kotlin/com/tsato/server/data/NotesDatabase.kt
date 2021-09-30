@@ -2,6 +2,7 @@ package com.tsato.server.data
 
 import com.tsato.server.data.collections.Note
 import com.tsato.server.data.collections.User
+import com.tsato.server.security.checkHashForPassword
 import org.litote.kmongo.contains
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.eq
@@ -26,8 +27,8 @@ suspend fun userExists(email: String): Boolean {
 }
 
 suspend fun isPasswordValid(email: String, passwordToCheck: String): Boolean {
-    val actualPassword = users.findOne(User::email eq email)?.password ?: return false
-    return actualPassword == passwordToCheck
+    val actualPassword = users.findOne(User::email eq email)?.password ?: return false // saved in database
+    return checkHashForPassword(passwordToCheck, actualPassword)
 }
 
 suspend fun getNotesForUser(email: String): List<Note> {
