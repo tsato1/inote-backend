@@ -8,12 +8,14 @@ import com.tsato.server.data.responses.SimpleResponse
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.ContentTransformationException
+import io.ktor.html.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.html.*
 
 fun Route.noteRoute() {
     route("/getNotes") {
@@ -97,6 +99,33 @@ fun Route.noteRoute() {
                 }
                 else {
                     call.respond(Conflict)
+                }
+            }
+        }
+    }
+
+    route("/notes") { // returns all notes from the server
+        authenticate {
+            get {
+                val allNotes = getAllNotes()
+                call.respondHtml {
+                    head {
+                        styleLink("/static/css/styles.css")
+                    }
+                    body {
+                        h1 {
+                            +"All notes"
+                        }
+                        for (note in allNotes) {
+                            h3 {
+                                +"${note.title} (belongs to ${note.owners}):"
+                            }
+                            p {
+                                +note.content
+                            }
+                            br
+                        }
+                    }
                 }
             }
         }

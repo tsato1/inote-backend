@@ -76,3 +76,7 @@ suspend fun isOwnerOfNote(id: String, owner: String): Boolean {
 
     return owner in note.owners
 }
+
+suspend fun getAllNotes(): List<Note> {
+    return notes.find().toList()
+}
